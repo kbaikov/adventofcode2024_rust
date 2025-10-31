@@ -13,16 +13,27 @@ use std::iter::zip;
 
 pub fn process(input: &str) -> anyhow::Result<String> {
     let (_, reports) = parse(input).map_err(|e| anyhow!("Parsing error: {}", e))?;
-    // dbg!(&reports.len());
-    // tracing::info!("ffffffffffff");
 
     Ok(reports
         .iter()
-        .filter(|report| is_safe(report))
+        .filter(|report| {
+            if !is_safe(report) {
+                for index in 0..report.len() {
+                    let mut new_report = (*report).clone();
+                    new_report.remove(index);
+                    if is_safe(&new_report) {
+                        return true;
+                    } else {
+                        continue;
+                    }
+                }
+                return false;
+            } else {
+                true
+            }
+        })
         .count()
         .to_string())
-
-    // Ok("asdf".to_string())
 }
 
 type Report = Vec<i32>;
@@ -34,6 +45,9 @@ fn parse(input: &str) -> IResult<&str, Vec<Report>> {
 fn is_safe(report: &Report) -> bool {
     let d =
         zip(report.iter(), report.iter().skip(1)).all(|(l, r)| (1..=3).contains(&l.abs_diff(*r)));
+    if !d {
+        return false;
+    }
     let slope1 = zip(report.iter(), report.iter().skip(1)).all(|(l, r)| (l - r) > 0);
     let slope2 = zip(report.iter(), report.iter().skip(1)).all(|(l, r)| (l - r) < 0);
 
