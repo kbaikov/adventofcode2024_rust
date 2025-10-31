@@ -1,23 +1,43 @@
 /// influenced by https://github.com/ChristopherBiscardi/advent-of-code/
-use anyhow;
+use anyhow::anyhow;
+use nom::Parser;
+use nom::{
+    IResult,
+    character::complete::{line_ending, space1},
+    multi::separated_list1,
+};
+
+use nom::character::complete;
+
+use std::iter::zip;
 
 pub fn process(input: &str) -> anyhow::Result<String> {
-    let mut left = vec![];
-    let mut right = vec![];
-    for line in input.lines() {
-        let mut items = line.split_whitespace();
-        left.push(items.next().unwrap().parse::<isize>().unwrap());
-        right.push(items.next().unwrap().parse::<isize>().unwrap());
-    }
-    left.sort();
-    right.sort();
+    let (_, reports) = parse(input).map_err(|e| anyhow!("Parsing error: {}", e))?;
+    // dbg!(&reports.len());
+    // tracing::info!("ffffffffffff");
 
-    let result: usize = left
+    Ok(reports
         .iter()
-        .map(|n| *n as usize * right.iter().filter(|r| n == *r).count())
-        .sum();
-    dbg!(result);
-    Ok(result.to_string())
+        .filter(|report| is_safe(report))
+        .count()
+        .to_string())
+
+    // Ok("asdf".to_string())
+}
+
+type Report = Vec<i32>;
+
+fn parse(input: &str) -> IResult<&str, Vec<Report>> {
+    separated_list1(line_ending, separated_list1(space1, complete::i32)).parse(input)
+}
+
+fn is_safe(report: &Report) -> bool {
+    let d =
+        zip(report.iter(), report.iter().skip(1)).all(|(l, r)| (1..=3).contains(&l.abs_diff(*r)));
+    let slope1 = zip(report.iter(), report.iter().skip(1)).all(|(l, r)| (l - r) > 0);
+    let slope2 = zip(report.iter(), report.iter().skip(1)).all(|(l, r)| (l - r) < 0);
+
+    d && (slope1 || slope2)
 }
 
 #[cfg(test)]
@@ -28,18 +48,18 @@ mod tests {
 
     #[test]
     fn test_example_data() {
-        let input = "3   4
-4   3
-2   5
-1   3
-3   9
-3   3";
-        assert_eq!("31", process(input).unwrap());
+        let input = "7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9";
+        assert_eq!("4", process(input).unwrap());
     }
 
     #[test]
     fn test_real_data() {
         let input = fs::read_to_string("day02_input.txt").unwrap();
-        assert_eq!("24869388", process(&input).unwrap());
+        assert_eq!("426", process(&input).unwrap());
     }
 }

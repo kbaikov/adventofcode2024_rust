@@ -11,7 +11,6 @@ use nom::character::complete;
 
 use std::iter::zip;
 
-#[tracing::instrument(ret, skip(input))]
 pub fn process(input: &str) -> anyhow::Result<String> {
     let (_, reports) = parse(input).map_err(|e| anyhow!("Parsing error: {}", e))?;
     // dbg!(&reports.len());
@@ -28,7 +27,6 @@ pub fn process(input: &str) -> anyhow::Result<String> {
 
 type Report = Vec<i32>;
 
-#[tracing::instrument]
 fn parse(input: &str) -> IResult<&str, Vec<Report>> {
     separated_list1(line_ending, separated_list1(space1, complete::i32)).parse(input)
 }

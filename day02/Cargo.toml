@@ -6,5 +6,3 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.99"
 nom = "8.0.0"
-tracing = "0.1.41"
-tracing-subscriber = "0.3.19"
