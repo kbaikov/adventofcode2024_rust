@@ -1,5 +1,5 @@
 /// influenced by https://github.com/ChristopherBiscardi/advent-of-code/
-use anyhow::anyhow;
+use anyhow;
 use regex::Regex;
 
 pub fn process(input: &str) -> anyhow::Result<String> {
